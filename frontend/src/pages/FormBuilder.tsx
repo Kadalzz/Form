@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, GripVertical, Save, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, GripVertical, Save, ArrowLeft, X } from 'lucide-react'
 import { apiService } from '@/services/api'
 
 type QuestionType = 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX'
@@ -78,7 +78,7 @@ export default function FormBuilder() {
       type: 'SHORT_TEXT',
       isRequired: false,
       order: questions.length,
-      options: [],
+      options: [''],
     }
     setQuestions([...questions, newQuestion])
   }
@@ -86,6 +86,12 @@ export default function FormBuilder() {
   const handleUpdateQuestion = (index: number, field: string, value: any) => {
     const updated = [...questions]
     updated[index] = { ...updated[index], [field]: value }
+    // When switching to MULTIPLE_CHOICE or CHECKBOX, ensure at least one option exists
+    if (field === 'type' && (value === 'MULTIPLE_CHOICE' || value === 'CHECKBOX')) {
+      if (!updated[index].options || updated[index].options!.length === 0) {
+        updated[index].options = ['']
+      }
+    }
     setQuestions(updated)
   }
 
@@ -234,20 +240,55 @@ export default function FormBuilder() {
 
               {(question.type === 'MULTIPLE_CHOICE' || question.type === 'CHECKBOX') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Options (comma separated)</label>
-                  <input
-                    type="text"
-                    value={(question.options || []).join(', ')}
-                    onChange={(e) =>
-                      handleUpdateQuestion(
-                        index,
-                        'options',
-                        e.target.value.split(',').map((o) => o.trim()).filter(o => o)
-                      )
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="Option 1, Option 2, Option 3"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pilihan Jawaban</label>
+                  <div className="space-y-2">
+                    {(question.options || []).map((option, optIndex) => (
+                      <div key={optIndex} className="flex items-center space-x-2">
+                        {/* Icon indicator */}
+                        {question.type === 'MULTIPLE_CHOICE' ? (
+                          <div className="w-[18px] h-[18px] rounded-full border-2 border-gray-300 flex-shrink-0" />
+                        ) : (
+                          <div className="w-[18px] h-[18px] rounded-sm border-2 border-gray-300 flex-shrink-0" />
+                        )}
+                        <input
+                          type="text"
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...(question.options || [])]
+                            newOptions[optIndex] = e.target.value
+                            handleUpdateQuestion(index, 'options', newOptions)
+                          }}
+                          className="flex-1 px-3 py-1.5 border-0 border-b border-gray-300 focus:outline-none focus:border-purple-600 focus:border-b-2 text-sm"
+                          placeholder={`Opsi ${optIndex + 1}`}
+                        />
+                        {(question.options || []).length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newOptions = (question.options || []).filter((_, i) => i !== optIndex)
+                              handleUpdateQuestion(index, 'options', newOptions)
+                            }}
+                            className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => {
+                        const newOptions = [...(question.options || []), '']
+                        handleUpdateQuestion(index, 'options', newOptions)
+                      }}
+                      className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 mt-2 py-1"
+                    >
+                      {question.type === 'MULTIPLE_CHOICE' ? (
+                        <div className="w-[18px] h-[18px] rounded-full border-2 border-gray-300 border-dashed flex-shrink-0" />
+                      ) : (
+                        <div className="w-[18px] h-[18px] rounded-sm border-2 border-gray-300 border-dashed flex-shrink-0" />
+                      )}
+                      <span>Tambah opsi</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
