@@ -1,25 +1,19 @@
 {
+  "version": 2,
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install --prefix frontend && npm install --prefix api && npm install --prefix backend && cd backend && npx prisma generate",
+  "installCommand": "cd api && npm install && cd ../backend && npm install && npx prisma generate",
   "framework": null,
+  "functions": {
+    "api/*.ts": {
+      "runtime": "nodejs20.x",
+      "includeFiles": "backend/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/api"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "destination": "/api/index"
     }
   ]
 }
