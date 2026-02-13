@@ -7,7 +7,7 @@ async function main() {
   const loginRes = await fetch(`${BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'gebychristy@gmail.com', password: 'FloraSamosir' })
+    body: JSON.stringify({ email: 'gebychristy@gmail.com', password: '12Mei2002' })
   })
   const loginData = await loginRes.json()
   if (!loginData.success) {
