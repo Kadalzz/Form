@@ -26,12 +26,12 @@ app.get('/api', (req: Request, res: Response) => {
   });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/forms', formRoutes);
-app.use('/api/questions', questionRoutes);
-app.use('/api/responses', responseRoutes);
-app.use('/api/export', exportRoutes);
+// API Routes - Remove /api prefix since Vercel handles routing
+app.use('/auth', authRoutes);
+app.use('/forms', formRoutes);
+app.use('/questions', questionRoutes);
+app.use('/responses', responseRoutes);
+app.use('/export', exportRoutes);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
