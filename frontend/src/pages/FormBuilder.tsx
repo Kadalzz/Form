@@ -124,20 +124,34 @@ export default function FormBuilder() {
       // Save all questions
       for (const question of questions) {
         if (question.title.trim()) {
+          // Clean up options - filter empty strings
+          const cleanOptions = (question.options || []).filter(o => o.trim() !== '')
+          const questionData = {
+            formId: formId!,
+            title: question.title,
+            description: question.description || undefined,
+            type: question.type,
+            isRequired: question.isRequired,
+            order: question.order,
+            options: cleanOptions.length > 0 ? cleanOptions : undefined,
+          }
+
           if (question.id) {
-            await updateQuestionMutation.mutateAsync({ id: question.id, data: question })
+            await updateQuestionMutation.mutateAsync({ id: question.id, data: questionData })
           } else {
-            await createQuestionMutation.mutateAsync({ ...question, formId })
+            await createQuestionMutation.mutateAsync(questionData)
           }
         }
       }
 
       alert('Form saved successfully!')
+      queryClient.invalidateQueries({ queryKey: ['form', formId] })
       if (!isEditMode) {
         navigate(`/form/${formId}/edit`)
       }
-    } catch (error) {
-      alert('Failed to save form')
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || error?.message || 'Unknown error'
+      alert(`Failed to save form: ${msg}`)
     }
   }
 
