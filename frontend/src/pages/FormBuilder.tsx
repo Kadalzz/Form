@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, GripVertical, Save, ArrowLeft, X, Image, Palette, Eye } from 'lucide-react'
 import { apiService } from '@/services/api'
 
-type QuestionType = 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX'
+type QuestionType = 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX' | 'LINEAR_SCALE' | 'SECTION_HEADER'
 
 interface Question {
   id?: string
@@ -120,6 +120,12 @@ export default function FormBuilder() {
     if (field === 'type' && (value === 'MULTIPLE_CHOICE' || value === 'CHECKBOX')) {
       if (!updated[index].options || updated[index].options!.length === 0) {
         updated[index].options = ['']
+      }
+    }
+    // When switching to LINEAR_SCALE, set default scale options
+    if (field === 'type' && value === 'LINEAR_SCALE') {
+      if (!updated[index].options || updated[index].options!.length < 4) {
+        updated[index].options = ['1', '7', 'Very Strongly Disagree', 'Very Strongly Agree']
       }
     }
     setQuestions(updated)
@@ -419,8 +425,11 @@ export default function FormBuilder() {
                   <option value="LONG_TEXT">Long Text</option>
                   <option value="MULTIPLE_CHOICE">Multiple Choice</option>
                   <option value="CHECKBOX">Checkbox</option>
+                  <option value="LINEAR_SCALE">Linear Scale</option>
+                  <option value="SECTION_HEADER">Section Header</option>
                 </select>
 
+                {question.type !== 'SECTION_HEADER' && (
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -430,6 +439,7 @@ export default function FormBuilder() {
                   />
                   <span className="text-sm text-gray-700">Required</span>
                 </label>
+                )}
               </div>
 
               {(question.type === 'MULTIPLE_CHOICE' || question.type === 'CHECKBOX') && (
@@ -483,6 +493,106 @@ export default function FormBuilder() {
                       <span>Tambah opsi</span>
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* LINEAR SCALE Settings */}
+              {question.type === 'LINEAR_SCALE' && (
+                <div className="space-y-3 bg-gray-50 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-700">Pengaturan Skala</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500">Nilai Minimum</label>
+                      <select
+                        value={(question.options || [])[0] || '1'}
+                        onChange={(e) => {
+                          const opts = [...(question.options || ['1', '7', '', ''])]
+                          opts[0] = e.target.value
+                          handleUpdateQuestion(index, 'options', opts)
+                        }}
+                        className="w-full mt-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                      >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">Nilai Maksimum</label>
+                      <select
+                        value={(question.options || [])[1] || '7'}
+                        onChange={(e) => {
+                          const opts = [...(question.options || ['1', '7', '', ''])]
+                          opts[1] = e.target.value
+                          handleUpdateQuestion(index, 'options', opts)
+                        }}
+                        className="w-full mt-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                      >
+                        {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                          <option key={n} value={String(n)}>{n}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500">Label Kiri (min)</label>
+                      <input
+                        type="text"
+                        value={(question.options || [])[2] || ''}
+                        onChange={(e) => {
+                          const opts = [...(question.options || ['1', '7', '', ''])]
+                          opts[2] = e.target.value
+                          handleUpdateQuestion(index, 'options', opts)
+                        }}
+                        className="w-full mt-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                        placeholder="e.g., Very Strongly Disagree"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">Label Kanan (max)</label>
+                      <input
+                        type="text"
+                        value={(question.options || [])[3] || ''}
+                        onChange={(e) => {
+                          const opts = [...(question.options || ['1', '7', '', ''])]
+                          opts[3] = e.target.value
+                          handleUpdateQuestion(index, 'options', opts)
+                        }}
+                        className="w-full mt-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                        placeholder="e.g., Very Strongly Agree"
+                      />
+                    </div>
+                  </div>
+                  {/* Preview */}
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-xs text-gray-400 mb-2">Preview:</p>
+                    <div className="flex items-center justify-center text-xs text-gray-500">
+                      <span className="mr-2">{(question.options || [])[2] || ''}</span>
+                      {Array.from({ length: parseInt((question.options || [])[1] || '7') - parseInt((question.options || [])[0] || '1') + 1 }, (_, i) => parseInt((question.options || [])[0] || '1') + i).map((v) => (
+                        <div key={v} className="flex flex-col items-center mx-1">
+                          <span className="mb-1">{v}</span>
+                          <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
+                        </div>
+                      ))}
+                      <span className="ml-2">{(question.options || [])[3] || ''}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Section Header note */}
+              {question.type === 'SECTION_HEADER' && (
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <p className="text-xs text-purple-600">
+                    Ini akan ditampilkan sebagai header bagian berwarna di form. Gunakan deskripsi untuk catatan tambahan.
+                  </p>
+                  <input
+                    type="text"
+                    value={question.description || ''}
+                    onChange={(e) => handleUpdateQuestion(index, 'description', e.target.value)}
+                    className="w-full mt-2 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                    placeholder="Deskripsi bagian (opsional)"
+                  />
                 </div>
               )}
             </div>

@@ -81,10 +81,12 @@ export default function FormView() {
 
     const submissionData = {
       formId: id!,
-      answers: form.questions.map((q: any) => ({
-        questionId: q.id,
-        value: answers[q.id] || (q.type === 'CHECKBOX' ? [] : ''),
-      })).filter((a: any) => a.value !== '' && (Array.isArray(a.value) ? a.value.length > 0 : true)),
+      answers: form.questions
+        .filter((q: any) => q.type !== 'SECTION_HEADER')
+        .map((q: any) => ({
+          questionId: q.id,
+          value: answers[q.id] || (q.type === 'CHECKBOX' ? [] : ''),
+        })).filter((a: any) => a.value !== '' && (Array.isArray(a.value) ? a.value.length > 0 : true)),
     }
 
     await submitMutation.mutateAsync(submissionData)
@@ -228,7 +230,31 @@ export default function FormView() {
 
         {/* Questions */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          {form.questions.map((question: any) => (
+          {form.questions.map((question: any) => {
+
+            {/* SECTION_HEADER - rendered as a colored banner */}
+            if (question.type === 'SECTION_HEADER') {
+              return (
+                <div
+                  key={question.id}
+                  className="rounded-xl overflow-hidden shadow-sm"
+                >
+                  <div
+                    className="px-6 py-4"
+                    style={{ backgroundColor: theme }}
+                  >
+                    <h2 className="text-lg font-bold text-white leading-snug">
+                      {question.title}
+                    </h2>
+                    {question.description && (
+                      <p className="text-sm text-white/80 mt-1">{question.description}</p>
+                    )}
+                  </div>
+                </div>
+              )
+            }
+
+            return (
             <div
               key={question.id}
               id={`question-${question.id}`}
@@ -372,6 +398,58 @@ export default function FormView() {
                     </div>
                   )}
 
+                  {/* LINEAR SCALE - Likert scale like Google Forms */}
+                  {question.type === 'LINEAR_SCALE' && (() => {
+                    // options format: ["1", "7", "Very Strongly Disagree", "Very Strongly Agree"]
+                    const opts = question.options || ["1", "7", "", ""]
+                    const minVal = parseInt(opts[0] || "1")
+                    const maxVal = parseInt(opts[1] || "7")
+                    const minLabel = opts[2] || ""
+                    const maxLabel = opts[3] || ""
+                    const scaleValues = Array.from({ length: maxVal - minVal + 1 }, (_, i) => minVal + i)
+                    const selectedValue = answers[question.id] as string
+
+                    return (
+                      <div className="mt-2">
+                        {/* Scale numbers header */}
+                        <div className="flex items-center justify-center">
+                          {minLabel && (
+                            <span className="text-xs text-gray-500 font-medium mr-3 w-28 text-right flex-shrink-0">{minLabel}</span>
+                          )}
+                          <div className="flex items-center space-x-0">
+                            {scaleValues.map((val) => (
+                              <div key={val} className="flex flex-col items-center" style={{ minWidth: '40px' }}>
+                                <span className="text-xs text-gray-500 font-medium mb-2">{val}</span>
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name={question.id}
+                                    value={String(val)}
+                                    onChange={() => handleAnswerChange(question.id, String(val))}
+                                    className="sr-only"
+                                  />
+                                  <div
+                                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all hover:border-gray-400"
+                                    style={{
+                                      borderColor: selectedValue === String(val) ? theme : '#d1d5db',
+                                    }}
+                                  >
+                                    {selectedValue === String(val) && (
+                                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme }}></div>
+                                    )}
+                                  </div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          {maxLabel && (
+                            <span className="text-xs text-gray-500 font-medium ml-3 w-28 flex-shrink-0">{maxLabel}</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   {/* Error */}
                   {errors[question.id] && (
                     <div className="flex items-center mt-3 text-red-500">
@@ -384,7 +462,8 @@ export default function FormView() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
 
           {/* Submit Area */}
           <div className="flex items-center justify-between pt-3 pb-4">

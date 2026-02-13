@@ -92,7 +92,7 @@ class ApiService {
     formId: string
     title: string
     description?: string
-    type: 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX'
+    type: 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX' | 'LINEAR_SCALE' | 'SECTION_HEADER'
     isRequired: boolean
     order: number
     options?: string[]

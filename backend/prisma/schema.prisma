@@ -71,6 +71,8 @@ enum QuestionType {
   LONG_TEXT
   MULTIPLE_CHOICE
   CHECKBOX
+  LINEAR_SCALE
+  SECTION_HEADER
 }
 
 model Question {
