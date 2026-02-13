@@ -6,20 +6,26 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // ============================================
 // USER & AUTHENTICATION
 // ============================================
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("USER") // ADMIN or USER
+  role      UserRole @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -57,15 +63,22 @@ model Form {
 // QUESTIONS
 // ============================================
 
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  MULTIPLE_CHOICE
+  CHECKBOX
+}
+
 model Question {
   id          String       @id @default(uuid())
   formId      String
   title       String
   description String?
-  type        String       // SHORT_TEXT, LONG_TEXT, MULTIPLE_CHOICE, CHECKBOX
+  type        QuestionType
   isRequired  Boolean      @default(false)
   order       Int          // untuk sorting order pertanyaan
-  options     String?      // JSON string untuk pilihan jika type = MULTIPLE_CHOICE atau CHECKBOX
+  options     Json?        // untuk menyimpan pilihan (array) jika type = MULTIPLE_CHOICE atau CHECKBOX
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -99,7 +112,7 @@ model Answer {
   id         String   @id @default(uuid())
   responseId String
   questionId String
-  value      String   // JSON string - flexible untuk berbagai tipe jawaban
+  value      Json     // flexible untuk berbagai tipe jawaban (string, array untuk checkbox, dll)
   createdAt  DateTime @default(now())
 
   // Relations

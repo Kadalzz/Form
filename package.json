@@ -1,0 +1,9 @@
+{
+  "name": "form-builder",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "vercel-build": "cd frontend && npm install && npm run build",
+    "postinstall": "cd api && npm install && cd ../backend && npm install && npx prisma generate"
+  }
+}
