@@ -57,7 +57,7 @@ class ApiService {
   }
 
   // ===== FORMS =====
-  async createForm(data: { title: string; description?: string }) {
+  async createForm(data: { title: string; description?: string; headerImage?: string; logoUrl?: string; themeColor?: string }) {
     const response = await this.api.post('/forms', data)
     return response.data
   }
@@ -72,7 +72,7 @@ class ApiService {
     return response.data
   }
 
-  async updateForm(id: string, data: Partial<{ title: string; description: string; isPublished: boolean }>) {
+  async updateForm(id: string, data: Partial<{ title: string; description: string; isPublished: boolean; headerImage: string; logoUrl: string; themeColor: string }>) {
     const response = await this.api.put(`/forms/${id}`, data)
     return response.data
   }

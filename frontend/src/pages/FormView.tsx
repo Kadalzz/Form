@@ -1,8 +1,26 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Send } from 'lucide-react'
 import { apiService } from '@/services/api'
+
+// Helper: lighten a hex color for backgrounds
+function lightenColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = Math.min(255, (num >> 16) + Math.round((255 - (num >> 16)) * percent))
+  const g = Math.min(255, ((num >> 8) & 0x00ff) + Math.round((255 - ((num >> 8) & 0x00ff)) * percent))
+  const b = Math.min(255, (num & 0x0000ff) + Math.round((255 - (num & 0x0000ff)) * percent))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Helper: darken a hex color
+function darkenColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = Math.max(0, Math.round((num >> 16) * (1 - percent)))
+  const g = Math.max(0, Math.round(((num >> 8) & 0x00ff) * (1 - percent)))
+  const b = Math.max(0, Math.round((num & 0x0000ff) * (1 - percent)))
+  return `rgb(${r}, ${g}, ${b})`
+}
 
 export default function FormView() {
   const { id } = useParams()
@@ -24,7 +42,6 @@ export default function FormView() {
 
   const handleAnswerChange = (questionId: string, value: string | string[]) => {
     setAnswers({ ...answers, [questionId]: value })
-    // Clear error when answered
     if (errors[questionId]) {
       setErrors({ ...errors, [questionId]: '' })
     }
@@ -57,7 +74,6 @@ export default function FormView() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
-      // Scroll to first error
       const firstErrorId = Object.keys(newErrors)[0]
       document.getElementById(`question-${firstErrorId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
@@ -74,193 +90,349 @@ export default function FormView() {
     await submitMutation.mutateAsync(submissionData)
   }
 
+  // --- Loading State ---
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm">Memuat formulir...</p>
+        </div>
       </div>
     )
   }
 
+  // --- Not Found ---
   if (!formData?.data) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-        <div className="bg-white rounded-lg shadow p-8 text-center max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg p-10 text-center max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Form tidak ditemukan</h2>
-          <p className="text-gray-600">Form ini mungkin sudah dihapus atau tidak tersedia.</p>
+          <p className="text-gray-500">Form ini mungkin sudah dihapus atau tidak tersedia.</p>
         </div>
       </div>
     )
   }
 
   const form = formData.data
+  const theme = form.themeColor || '#673AB7'
+  const bgColor = lightenColor(theme, 0.92)
+  const headerImg = form.headerImage || ''
+  const logo = form.logoUrl || ''
 
+  // --- Not Published ---
   if (!form.isPublished) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-        <div className="bg-white rounded-lg shadow p-8 text-center max-w-md">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: bgColor }}>
+        <div className="bg-white rounded-2xl shadow-lg p-10 text-center max-w-md">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: lightenColor(theme, 0.85) }}>
+            <svg className="w-8 h-8" style={{ color: theme }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Form tidak tersedia</h2>
-          <p className="text-gray-600">Form ini sedang tidak menerima respons.</p>
+          <p className="text-gray-500">Form ini sedang tidak menerima respons.</p>
         </div>
       </div>
     )
   }
 
+  // --- Submitted State ---
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: bgColor }}>
         <div className="max-w-lg w-full mx-4">
-          <div className="bg-white rounded-lg shadow-sm border-t-[10px] border-purple-700 p-8 text-center">
-            <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="h-2" style={{ backgroundColor: theme }}></div>
+            <div className="p-10 text-center">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: lightenColor(theme, 0.85) }}>
+                <CheckCircle className="w-12 h-12" style={{ color: theme }} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Respons Terkirim!</h2>
+              <p className="text-gray-500 mb-6">Terima kasih telah mengisi formulir ini.</p>
+              <button
+                onClick={() => {
+                  setSubmitted(false)
+                  setAnswers({})
+                  setErrors({})
+                }}
+                className="px-6 py-2.5 rounded-full text-sm font-medium text-white transition-all hover:shadow-lg"
+                style={{ backgroundColor: theme }}
+              >
+                Kirim respons lain
+              </button>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Respons Terkirim!</h2>
-            <p className="text-gray-600">Terima kasih telah mengisi formulir ini.</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // --- Main Form View ---
   return (
-    <div className="min-h-screen py-6 px-4" style={{ backgroundColor: '#f0ebf8' }}>
-      <div className="max-w-2xl mx-auto space-y-3">
+    <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
+      {/* Header Banner Image */}
+      {headerImg && (
+        <div className="relative w-full h-48 md:h-56 overflow-hidden">
+          <img
+            src={headerImg}
+            alt="Form header"
+            className="w-full h-full object-cover"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to bottom, ${theme}33 0%, ${theme}99 100%)`,
+            }}
+          />
+        </div>
+      )}
 
-        {/* Form Title Card - Google Forms style with top purple border */}
-        <div className="bg-white rounded-lg shadow-sm border-t-[10px] border-purple-700 px-6 pt-6 pb-5">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">{form.title}</h1>
-          {form.description && (
-            <p className="text-sm text-gray-600 mt-1">{form.description}</p>
-          )}
-          <hr className="mt-4 border-gray-200" />
-          <p className="text-xs text-red-600 mt-3">* Menunjukkan pertanyaan yang wajib diisi</p>
+      <div className={`max-w-2xl mx-auto px-4 space-y-3 ${headerImg ? '-mt-12' : 'pt-6'} pb-8`}>
+
+        {/* Form Title Card */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="h-3" style={{ backgroundColor: theme }}></div>
+          <div className="px-6 pt-5 pb-5">
+            {/* Logo and Title */}
+            <div className="flex items-start space-x-4">
+              {logo && (
+                <img
+                  src={logo}
+                  alt="Form logo"
+                  className="w-14 h-14 rounded-full object-cover flex-shrink-0 border-2 shadow-sm"
+                  style={{ borderColor: lightenColor(theme, 0.6) }}
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <h1
+                  className="text-2xl md:text-[26px] font-bold leading-tight"
+                  style={{ color: darkenColor(theme, 0.15) }}
+                >
+                  {form.title}
+                </h1>
+                {form.description && (
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
+                    {form.description}
+                  </p>
+                )}
+              </div>
+            </div>
+            <hr className="mt-4 border-gray-200" />
+            <p className="text-xs mt-3" style={{ color: theme }}>
+              <span className="font-medium">*</span> Menunjukkan pertanyaan yang wajib diisi
+            </p>
+          </div>
         </div>
 
-        {/* Questions - Each in its own card like Google Forms */}
+        {/* Questions */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          {form.questions.map((question: any, index: number) => (
+          {form.questions.map((question: any) => (
             <div
               key={question.id}
               id={`question-${question.id}`}
-              className={`bg-white rounded-lg shadow-sm px-6 py-5 ${
-                errors[question.id] ? 'border border-red-600' : ''
+              className={`bg-white rounded-xl shadow-sm overflow-hidden transition-all ${
+                errors[question.id]
+                  ? 'ring-1 ring-red-400 shadow-red-100'
+                  : 'hover:shadow-md'
               }`}
             >
-              {/* Question Title */}
-              <div className="mb-4">
-                <span className="text-base text-gray-900">
-                  {index + 1}. {question.title}
-                  {question.isRequired && <span className="text-red-600 ml-1">*</span>}
-                </span>
-                {question.description && (
-                  <p className="text-sm text-gray-500 mt-1">{question.description}</p>
-                )}
+              {/* Colored left accent bar */}
+              <div className="flex">
+                <div
+                  className="w-1 flex-shrink-0 rounded-l-xl"
+                  style={{
+                    backgroundColor: errors[question.id] ? '#ef4444' : 'transparent',
+                  }}
+                ></div>
+
+                <div className="flex-1 px-6 py-5">
+                  {/* Question Title */}
+                  <div className="mb-4">
+                    <h3 className="text-base text-gray-800 font-medium leading-relaxed">
+                      {question.title}
+                      {question.isRequired && (
+                        <span className="text-red-500 ml-1 font-normal">*</span>
+                      )}
+                    </h3>
+                    {question.description && (
+                      <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                    )}
+                  </div>
+
+                  {/* SHORT TEXT */}
+                  {question.type === 'SHORT_TEXT' && (
+                    <input
+                      type="text"
+                      onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                      className="w-full border-0 border-b-2 border-gray-200 px-0 py-2 text-sm transition-colors placeholder-gray-400 bg-transparent focus:outline-none"
+                      onFocus={(e) => {
+                        e.target.style.borderBottomColor = theme
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderBottomColor = '#e5e7eb'
+                      }}
+                      placeholder="Jawaban Anda"
+                    />
+                  )}
+
+                  {/* LONG TEXT */}
+                  {question.type === 'LONG_TEXT' && (
+                    <textarea
+                      onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                      className="w-full border-0 border-b-2 border-gray-200 px-0 py-2 text-sm transition-colors placeholder-gray-400 resize-none bg-transparent focus:outline-none"
+                      rows={3}
+                      onFocus={(e) => {
+                        e.target.style.borderBottomColor = theme
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderBottomColor = '#e5e7eb'
+                      }}
+                      placeholder="Jawaban Anda"
+                    />
+                  )}
+
+                  {/* MULTIPLE CHOICE */}
+                  {question.type === 'MULTIPLE_CHOICE' && (
+                    <div className="space-y-2.5">
+                      {question.options?.map((option: string, optIndex: number) => {
+                        const isSelected = answers[question.id] === option
+                        return (
+                          <label
+                            key={optIndex}
+                            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all ${
+                              isSelected
+                                ? 'bg-opacity-10'
+                                : 'hover:bg-gray-50'
+                            }`}
+                            style={isSelected ? { backgroundColor: lightenColor(theme, 0.9) } : {}}
+                          >
+                            <div
+                              className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                              style={{
+                                borderColor: isSelected ? theme : '#d1d5db',
+                              }}
+                            >
+                              {isSelected && (
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme }}></div>
+                              )}
+                            </div>
+                            <input
+                              type="radio"
+                              name={question.id}
+                              onChange={() => handleAnswerChange(question.id, option)}
+                              className="sr-only"
+                            />
+                            <span className="text-sm text-gray-700">{option}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* CHECKBOX */}
+                  {question.type === 'CHECKBOX' && (
+                    <div className="space-y-2.5">
+                      {question.options?.map((option: string, optIndex: number) => {
+                        const isChecked = ((answers[question.id] as string[]) || []).includes(option)
+                        return (
+                          <label
+                            key={optIndex}
+                            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all ${
+                              isChecked
+                                ? ''
+                                : 'hover:bg-gray-50'
+                            }`}
+                            style={isChecked ? { backgroundColor: lightenColor(theme, 0.9) } : {}}
+                          >
+                            <div
+                              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border-2 transition-all"
+                              style={{
+                                borderColor: isChecked ? theme : '#d1d5db',
+                                backgroundColor: isChecked ? theme : 'transparent',
+                              }}
+                            >
+                              {isChecked && (
+                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => handleCheckboxChange(question.id, option, e.target.checked)}
+                              className="sr-only"
+                            />
+                            <span className="text-sm text-gray-700">{option}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {errors[question.id] && (
+                    <div className="flex items-center mt-3 text-red-500">
+                      <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-xs font-medium">{errors[question.id]}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {/* SHORT TEXT - Google Forms style underline input */}
-              {question.type === 'SHORT_TEXT' && (
-                <input
-                  type="text"
-                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                  className="w-full border-0 border-b border-gray-300 px-0 py-2 text-sm focus:outline-none focus:border-purple-700 focus:border-b-2 transition-colors placeholder-gray-400"
-                  placeholder="Jawaban Anda"
-                />
-              )}
-
-              {/* LONG TEXT - Google Forms style textarea */}
-              {question.type === 'LONG_TEXT' && (
-                <textarea
-                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                  className="w-full border-0 border-b border-gray-300 px-0 py-2 text-sm focus:outline-none focus:border-purple-700 focus:border-b-2 transition-colors placeholder-gray-400 resize-none"
-                  rows={3}
-                  placeholder="Jawaban Anda"
-                />
-              )}
-
-              {/* MULTIPLE CHOICE - Google Forms style radio buttons */}
-              {question.type === 'MULTIPLE_CHOICE' && (
-                <div className="space-y-3">
-                  {question.options?.map((option: string, optIndex: number) => (
-                    <label
-                      key={optIndex}
-                      className="flex items-center space-x-3 cursor-pointer py-1"
-                    >
-                      <input
-                        type="radio"
-                        name={question.id}
-                        onChange={() => handleAnswerChange(question.id, option)}
-                        className="w-[18px] h-[18px] cursor-pointer"
-                        style={{ accentColor: '#7c3aed' }}
-                      />
-                      <span className="text-sm text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-
-              {/* CHECKBOX - Google Forms style checkboxes */}
-              {question.type === 'CHECKBOX' && (
-                <div className="space-y-3">
-                  {question.options?.map((option: string, optIndex: number) => {
-                    const isChecked = ((answers[question.id] as string[]) || []).includes(option)
-                    return (
-                      <label
-                        key={optIndex}
-                        className="flex items-center space-x-3 cursor-pointer py-1"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => handleCheckboxChange(question.id, option, e.target.checked)}
-                          className="w-[18px] h-[18px] rounded cursor-pointer"
-                          style={{ accentColor: '#7c3aed' }}
-                        />
-                        <span className="text-sm text-gray-700">{option}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Error message - Google Forms style */}
-              {errors[question.id] && (
-                <div className="flex items-center mt-3 text-red-600">
-                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-xs">{errors[question.id]}</span>
-                </div>
-              )}
             </div>
           ))}
 
-          {/* Submit Button - Google Forms style */}
-          <div className="flex items-center justify-between pt-2">
+          {/* Submit Area */}
+          <div className="flex items-center justify-between pt-3 pb-4">
             <button
               type="submit"
               disabled={submitMutation.isPending}
-              className="px-8 py-2.5 rounded text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#7c3aed' }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#6d28d9')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#7c3aed')}
+              className="flex items-center space-x-2 px-8 py-3 rounded-full text-sm font-semibold text-white transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: theme }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = darkenColor(theme, 0.15)
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = theme
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
             >
-              {submitMutation.isPending ? 'Mengirim...' : 'Kirim'}
+              <Send className="w-4 h-4" />
+              <span>{submitMutation.isPending ? 'Mengirim...' : 'Kirim'}</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 setAnswers({})
                 setErrors({})
-                // Reset all form inputs
                 const formEl = document.querySelector('form')
                 formEl?.reset()
               }}
-              className="text-sm font-medium text-purple-700 hover:text-purple-800 px-4 py-2"
+              className="text-sm font-medium px-4 py-2 rounded-full transition-colors"
+              style={{ color: theme }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = lightenColor(theme, 0.9)
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
             >
               Hapus Formulir
             </button>
           </div>
         </form>
+
+        {/* Footer Branding */}
+        <div className="text-center pb-4">
+          <p className="text-xs text-gray-400">
+            Dibuat dengan <span style={{ color: theme }}>Form Builder</span>
+          </p>
+        </div>
       </div>
     </div>
   )

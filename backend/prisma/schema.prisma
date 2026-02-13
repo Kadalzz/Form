@@ -45,6 +45,9 @@ model Form {
   title       String
   description String?
   isPublished Boolean  @default(false)
+  headerImage String?  // URL for header banner image
+  logoUrl     String?  // URL for form logo/avatar
+  themeColor  String?  @default("#673AB7") // Theme accent color
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
