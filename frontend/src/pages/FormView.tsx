@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { CheckCircle, Send, Globe } from 'lucide-react'
+import { CheckCircle, Send } from 'lucide-react'
 import { apiService } from '@/services/api'
 
 const translations = {
@@ -22,32 +22,9 @@ const translations = {
     send: 'Submit',
     clearForm: 'Clear Form',
     madeWith: 'Made with',
-    langToggle: 'ID',
     respondentName: 'Respondent Name',
     respondentNamePlaceholder: 'Enter your name',
     respondentNameRequired: 'Please enter your name',
-  },
-  id: {
-    loading: 'Memuat formulir...',
-    notFound: 'Form tidak ditemukan',
-    notFoundDesc: 'Form ini mungkin sudah dihapus atau tidak tersedia.',
-    notAvailable: 'Form tidak tersedia',
-    notAvailableDesc: 'Form ini sedang tidak menerima respons.',
-    submitted: 'Respons Terkirim!',
-    submittedDesc: 'Terima kasih telah mengisi formulir ini.',
-    submitAnother: 'Kirim respons lain',
-    done: 'Selesai',
-    requiredNote: 'Menunjukkan pertanyaan yang wajib diisi',
-    yourAnswer: 'Jawaban Anda',
-    required: 'Pertanyaan ini wajib diisi',
-    sending: 'Mengirim...',
-    send: 'Kirim',
-    clearForm: 'Hapus Formulir',
-    madeWith: 'Dibuat dengan',
-    langToggle: 'EN',
-    respondentName: 'Nama Responden',
-    respondentNamePlaceholder: 'Masukkan nama Anda',
-    respondentNameRequired: 'Silakan masukkan nama Anda',
   },
 }
 
@@ -90,10 +67,9 @@ export default function FormView() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [lang, setLang] = useState<'en' | 'id'>('en')
   const [responderName, setResponderName] = useState('')
   const [nameError, setNameError] = useState('')
-  const t = translations[lang]
+  const t = translations.en
 
   const { data: formData, isLoading } = useQuery({
     queryKey: ['form', id],
@@ -279,19 +255,6 @@ export default function FormView() {
       )}
 
       <div className={`max-w-2xl mx-auto px-4 space-y-3 ${headerImg ? '-mt-6' : 'pt-6'} pb-8`}>
-
-        {/* Language Toggle */}
-        <div className="flex justify-end">
-          <button
-            onClick={() => setLang(lang === 'id' ? 'en' : 'id')}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white shadow-md transition-all hover:shadow-lg"
-            style={{ backgroundColor: theme }}
-            title={lang === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia'}
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{t.langToggle}</span>
-          </button>
-        </div>
 
         {/* Form Title Card */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
