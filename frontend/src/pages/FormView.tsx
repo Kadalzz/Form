@@ -90,7 +90,7 @@ export default function FormView() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [lang, setLang] = useState<'en' | 'id'>('id')
+  const [lang, setLang] = useState<'en' | 'id'>('en')
   const [responderName, setResponderName] = useState('')
   const [nameError, setNameError] = useState('')
   const t = translations[lang]
