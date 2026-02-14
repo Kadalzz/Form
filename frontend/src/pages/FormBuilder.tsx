@@ -4,6 +4,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, GripVertical, Save, ArrowLeft, X, Image, Palette, Eye } from 'lucide-react'
 import { apiService } from '@/services/api'
 
+// Convert Google Drive sharing URL to direct image URL
+function toDirectImageUrl(url: string): string {
+  if (!url) return url
+  // Extract file ID from various Google Drive URL formats
+  let fileId = ''
+  const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/)
+  if (driveFileMatch) fileId = driveFileMatch[1]
+  const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/)
+  if (driveOpenMatch) fileId = driveOpenMatch[1]
+  const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([^&]+)/)
+  if (driveUcMatch) fileId = driveUcMatch[1]
+  if (fileId) {
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`
+  }
+  return url
+}
+
 type QuestionType = 'SHORT_TEXT' | 'LONG_TEXT' | 'MULTIPLE_CHOICE' | 'CHECKBOX' | 'LINEAR_SCALE' | 'SECTION_HEADER'
 
 interface Question {
@@ -146,8 +163,8 @@ export default function FormBuilder() {
       const formPayload = {
         title: formTitle,
         description: formDescription || undefined,
-        headerImage: headerImage || undefined,
-        logoUrl: logoUrl || undefined,
+        headerImage: headerImage || null,
+        logoUrl: logoUrl || null,
         themeColor: themeColor || '#673AB7',
       }
 
@@ -308,7 +325,7 @@ export default function FormBuilder() {
                 value={customBannerUrl}
                 onChange={(e) => {
                   setCustomBannerUrl(e.target.value)
-                  setHeaderImage(e.target.value)
+                  setHeaderImage(toDirectImageUrl(e.target.value))
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 placeholder="Atau tempel URL gambar header..."
@@ -321,7 +338,7 @@ export default function FormBuilder() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Logo / Foto Profil (URL)</label>
             <div className="flex items-center space-x-3">
               {logoUrl && (
-                <img src={logoUrl} alt="Logo" className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" />
+                <img src={toDirectImageUrl(logoUrl)} alt="Logo" className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" />
               )}
               <input
                 type="text"
@@ -348,7 +365,7 @@ export default function FormBuilder() {
                 </div>
               )}
               <div className="px-4 py-3 flex items-center space-x-3" style={{ borderTop: `4px solid ${themeColor}` }}>
-                {logoUrl && <img src={logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-cover" />}
+                {logoUrl && <img src={toDirectImageUrl(logoUrl)} alt="Logo" className="w-10 h-10 rounded-full object-cover" />}
                 <div>
                   <p className="font-semibold text-sm" style={{ color: themeColor }}>{formTitle || 'Judul Formulir'}</p>
                   <p className="text-xs text-gray-500">{formDescription || 'Deskripsi'}</p>

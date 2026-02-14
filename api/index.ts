@@ -69,6 +69,7 @@ const answerSchema = z.object({
 });
 const responseSchema = z.object({
   formId: z.string(),
+  responderName: z.string().optional(),
   answers: z.array(answerSchema)
 });
 
@@ -316,7 +317,7 @@ app.patch('/api/questions/reorder', authenticate, isAdmin, async (req: AuthReque
 // ============ RESPONSE ROUTES ============
 app.post('/api/responses', async (req: AuthRequest, res: Response) => {
   try {
-    const { formId, answers } = responseSchema.parse(req.body);
+    const { formId, answers, responderName } = responseSchema.parse(req.body);
     const form = await prisma.form.findUnique({ where: { id: formId }, include: { questions: true } });
     if (!form) return res.status(404).json({ error: true, message: 'Form not found' });
     if (!form.isPublished) return res.status(403).json({ error: true, message: 'This form is not accepting responses' });
@@ -344,6 +345,7 @@ app.post('/api/responses', async (req: AuthRequest, res: Response) => {
       data: {
         formId,
         responderId,
+        responderName: responderName || null,
         answers: { create: answers.map(a => ({ questionId: a.questionId, value: a.value })) }
       },
       include: { answers: { include: { question: true } } }

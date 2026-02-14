@@ -9,7 +9,10 @@ const router = Router();
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  isPublished: z.boolean().optional()
+  isPublished: z.boolean().optional(),
+  headerImage: z.string().optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
+  themeColor: z.string().optional().nullable(),
 });
 
 // Create form (Admin only)

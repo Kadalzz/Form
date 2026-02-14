@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Download, Users } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Download, Users, Trash2 } from 'lucide-react'
 import { apiService } from '@/services/api'
 import { format } from 'date-fns'
 
 export default function FormResponses() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data: formData } = useQuery({
     queryKey: ['form', id],
@@ -17,6 +18,19 @@ export default function FormResponses() {
     queryKey: ['responses', id],
     queryFn: () => apiService.getResponses(id!),
   })
+
+  const deleteResponseMutation = useMutation({
+    mutationFn: (responseId: string) => apiService.deleteResponse(responseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['responses', id] })
+    },
+  })
+
+  const handleDeleteResponse = (responseId: string) => {
+    if (window.confirm('Are you sure you want to delete this response? This action cannot be undone.')) {
+      deleteResponseMutation.mutate(responseId)
+    }
+  }
 
   const handleExport = async (type: 'excel' | 'pdf') => {
     try {
@@ -94,56 +108,50 @@ export default function FormResponses() {
           <p className="text-gray-600">Responses will appear here once someone fills out your form.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    #
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Timestamp
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Responder
-                  </th>
-                  {form?.questions.map((question: any) => (
-                    <th
-                      key={question.id}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {question.title}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {responses.map((response: any, index: number) => (
-                  <tr key={response.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+        <div className="space-y-4">
+          {responses.map((response: any, index: number) => (
+            <div key={response.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              {/* Response Header */}
+              <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center space-x-4">
+                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {response.responderName || response.responder?.name || 'Anonymous'}
+                    </p>
+                    <p className="text-xs text-gray-500">
                       {format(new Date(response.createdAt), 'MMM dd, yyyy HH:mm')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {response.responder?.name || 'Anonymous'}
-                    </td>
-                    {form?.questions.map((question: any) => {
-                      const answer = response.answers.find((a: any) => a.questionId === question.id)
-                      const value = answer?.value
-                      const displayValue = Array.isArray(value) ? value.join(', ') : value || '-'
-                      
-                      return (
-                        <td key={question.id} className="px-6 py-4 text-sm text-gray-900">
-                          <div className="max-w-xs overflow-hidden text-ellipsis">{displayValue}</div>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDeleteResponse(response.id)}
+                  disabled={deleteResponseMutation.isPending}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                  title="Delete response"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
+              </div>
+              {/* Response Answers */}
+              <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {form?.questions.filter((q: any) => q.type !== 'SECTION_HEADER').map((question: any) => {
+                  const answer = response.answers.find((a: any) => a.questionId === question.id)
+                  const value = answer?.value
+                  const displayValue = Array.isArray(value) ? value.join(', ') : value || '-'
+                  return (
+                    <div key={question.id} className="border-b border-gray-100 pb-3 last:border-0">
+                      <p className="text-xs font-medium text-gray-500 mb-1">{question.title}</p>
+                      <p className="text-sm text-gray-900">{displayValue}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

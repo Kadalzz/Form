@@ -1,8 +1,55 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { CheckCircle, Send } from 'lucide-react'
+import { CheckCircle, Send, Globe } from 'lucide-react'
 import { apiService } from '@/services/api'
+
+const translations = {
+  en: {
+    loading: 'Loading form...',
+    notFound: 'Form not found',
+    notFoundDesc: 'This form may have been deleted or is not available.',
+    notAvailable: 'Form not available',
+    notAvailableDesc: 'This form is not currently accepting responses.',
+    submitted: 'Response Submitted!',
+    submittedDesc: 'Thank you for filling out this form.',
+    submitAnother: 'Submit another response',
+    done: 'Done',
+    requiredNote: 'Indicates required question',
+    yourAnswer: 'Your answer',
+    required: 'This question is required',
+    sending: 'Sending...',
+    send: 'Submit',
+    clearForm: 'Clear Form',
+    madeWith: 'Made with',
+    langToggle: 'ID',
+    respondentName: 'Respondent Name',
+    respondentNamePlaceholder: 'Enter your name',
+    respondentNameRequired: 'Please enter your name',
+  },
+  id: {
+    loading: 'Memuat formulir...',
+    notFound: 'Form tidak ditemukan',
+    notFoundDesc: 'Form ini mungkin sudah dihapus atau tidak tersedia.',
+    notAvailable: 'Form tidak tersedia',
+    notAvailableDesc: 'Form ini sedang tidak menerima respons.',
+    submitted: 'Respons Terkirim!',
+    submittedDesc: 'Terima kasih telah mengisi formulir ini.',
+    submitAnother: 'Kirim respons lain',
+    done: 'Selesai',
+    requiredNote: 'Menunjukkan pertanyaan yang wajib diisi',
+    yourAnswer: 'Jawaban Anda',
+    required: 'Pertanyaan ini wajib diisi',
+    sending: 'Mengirim...',
+    send: 'Kirim',
+    clearForm: 'Hapus Formulir',
+    madeWith: 'Dibuat dengan',
+    langToggle: 'EN',
+    respondentName: 'Nama Responden',
+    respondentNamePlaceholder: 'Masukkan nama Anda',
+    respondentNameRequired: 'Silakan masukkan nama Anda',
+  },
+}
 
 // Helper: lighten a hex color for backgrounds
 function lightenColor(hex: string, percent: number): string {
@@ -11,6 +58,22 @@ function lightenColor(hex: string, percent: number): string {
   const g = Math.min(255, ((num >> 8) & 0x00ff) + Math.round((255 - ((num >> 8) & 0x00ff)) * percent))
   const b = Math.min(255, (num & 0x0000ff) + Math.round((255 - (num & 0x0000ff)) * percent))
   return `rgb(${r}, ${g}, ${b})`
+}
+
+// Convert Google Drive sharing URL to direct image URL
+function toDirectImageUrl(url: string): string {
+  if (!url) return url
+  let fileId = ''
+  const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/)
+  if (driveFileMatch) fileId = driveFileMatch[1]
+  const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/)
+  if (driveOpenMatch) fileId = driveOpenMatch[1]
+  const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([^&]+)/)
+  if (driveUcMatch) fileId = driveUcMatch[1]
+  if (fileId) {
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`
+  }
+  return url
 }
 
 // Helper: darken a hex color
@@ -27,6 +90,10 @@ export default function FormView() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [lang, setLang] = useState<'en' | 'id'>('id')
+  const [responderName, setResponderName] = useState('')
+  const [nameError, setNameError] = useState('')
+  const t = translations[lang]
 
   const { data: formData, isLoading } = useQuery({
     queryKey: ['form', id],
@@ -68,7 +135,7 @@ export default function FormView() {
     for (const question of requiredQuestions) {
       const answer = answers[question.id]
       if (!answer || (Array.isArray(answer) && answer.length === 0) || answer === '') {
-        newErrors[question.id] = 'Pertanyaan ini wajib diisi'
+        newErrors[question.id] = t.required
       }
     }
 
@@ -79,8 +146,17 @@ export default function FormView() {
       return
     }
 
+    // Validate respondent name
+    if (!responderName.trim()) {
+      setNameError(t.respondentNameRequired)
+      document.getElementById('responder-name-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
+    setNameError('')
+
     const submissionData = {
       formId: id!,
+      responderName: responderName.trim(),
       answers: form.questions
         .filter((q: any) => q.type !== 'SECTION_HEADER')
         .map((q: any) => ({
@@ -98,7 +174,7 @@ export default function FormView() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Memuat formulir...</p>
+          <p className="text-gray-500 text-sm">{t.loading}</p>
         </div>
       </div>
     )
@@ -112,8 +188,8 @@ export default function FormView() {
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Form tidak ditemukan</h2>
-          <p className="text-gray-500">Form ini mungkin sudah dihapus atau tidak tersedia.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t.notFound}</h2>
+          <p className="text-gray-500">{t.notFoundDesc}</p>
         </div>
       </div>
     )
@@ -122,8 +198,8 @@ export default function FormView() {
   const form = formData.data
   const theme = form.themeColor || '#673AB7'
   const bgColor = lightenColor(theme, 0.92)
-  const headerImg = form.headerImage || ''
-  const logo = form.logoUrl || ''
+  const headerImg = toDirectImageUrl(form.headerImage || '')
+  const logo = toDirectImageUrl(form.logoUrl || '')
 
   // --- Not Published ---
   if (!form.isPublished) {
@@ -133,8 +209,8 @@ export default function FormView() {
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: lightenColor(theme, 0.85) }}>
             <svg className="w-8 h-8" style={{ color: theme }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Form tidak tersedia</h2>
-          <p className="text-gray-500">Form ini sedang tidak menerima respons.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t.notAvailable}</h2>
+          <p className="text-gray-500">{t.notAvailableDesc}</p>
         </div>
       </div>
     )
@@ -151,19 +227,30 @@ export default function FormView() {
               <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: lightenColor(theme, 0.85) }}>
                 <CheckCircle className="w-12 h-12" style={{ color: theme }} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Respons Terkirim!</h2>
-              <p className="text-gray-500 mb-6">Terima kasih telah mengisi formulir ini.</p>
-              <button
-                onClick={() => {
-                  setSubmitted(false)
-                  setAnswers({})
-                  setErrors({})
-                }}
-                className="px-6 py-2.5 rounded-full text-sm font-medium text-white transition-all hover:shadow-lg"
-                style={{ backgroundColor: theme }}
-              >
-                Kirim respons lain
-              </button>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">{t.submitted}</h2>
+              <p className="text-gray-500 mb-6">{t.submittedDesc}</p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={() => {
+                    setSubmitted(false)
+                    setAnswers({})
+                    setErrors({})
+                    setResponderName('')
+                    setNameError('')
+                  }}
+                  className="px-6 py-2.5 rounded-full text-sm font-medium text-white transition-all hover:shadow-lg"
+                  style={{ backgroundColor: theme }}
+                >
+                  {t.submitAnother}
+                </button>
+                <button
+                  onClick={() => window.close()}
+                  className="px-6 py-2.5 rounded-full text-sm font-medium border-2 transition-all hover:shadow-md"
+                  style={{ borderColor: theme, color: theme }}
+                >
+                  {t.done}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -176,7 +263,7 @@ export default function FormView() {
     <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
       {/* Header Banner Image */}
       {headerImg && (
-        <div className="relative w-full h-48 md:h-56 overflow-hidden">
+        <div className="relative w-full h-52 md:h-64 overflow-hidden">
           <img
             src={headerImg}
             alt="Form header"
@@ -191,7 +278,20 @@ export default function FormView() {
         </div>
       )}
 
-      <div className={`max-w-2xl mx-auto px-4 space-y-3 ${headerImg ? '-mt-12' : 'pt-6'} pb-8`}>
+      <div className={`max-w-2xl mx-auto px-4 space-y-3 ${headerImg ? '-mt-6' : 'pt-6'} pb-8`}>
+
+        {/* Language Toggle */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setLang(lang === 'id' ? 'en' : 'id')}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white shadow-md transition-all hover:shadow-lg"
+            style={{ backgroundColor: theme }}
+            title={lang === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia'}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>{t.langToggle}</span>
+          </button>
+        </div>
 
         {/* Form Title Card */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -223,8 +323,49 @@ export default function FormView() {
             </div>
             <hr className="mt-4 border-gray-200" />
             <p className="text-xs mt-3" style={{ color: theme }}>
-              <span className="font-medium">*</span> Menunjukkan pertanyaan yang wajib diisi
+              <span className="font-medium">*</span> {t.requiredNote}
             </p>
+          </div>
+        </div>
+
+        {/* Respondent Name Card */}
+        <div
+          id="responder-name-field"
+          className={`bg-white rounded-xl shadow-sm overflow-hidden transition-all ${
+            nameError ? 'ring-1 ring-red-400 shadow-red-100' : 'hover:shadow-md'
+          }`}
+        >
+          <div className="flex">
+            <div
+              className="w-1 flex-shrink-0 rounded-l-xl"
+              style={{ backgroundColor: nameError ? '#ef4444' : 'transparent' }}
+            ></div>
+            <div className="flex-1 px-6 py-5">
+              <h3 className="text-base text-gray-800 font-medium leading-relaxed mb-4">
+                {t.respondentName}
+                <span className="text-red-500 ml-1 font-normal">*</span>
+              </h3>
+              <input
+                type="text"
+                value={responderName}
+                onChange={(e) => {
+                  setResponderName(e.target.value)
+                  if (nameError) setNameError('')
+                }}
+                className="w-full border-0 border-b-2 border-gray-200 px-0 py-2 text-sm transition-colors placeholder-gray-400 bg-transparent focus:outline-none"
+                onFocus={(e) => { e.target.style.borderBottomColor = theme }}
+                onBlur={(e) => { e.target.style.borderBottomColor = '#e5e7eb' }}
+                placeholder={t.respondentNamePlaceholder}
+              />
+              {nameError && (
+                <div className="flex items-center mt-3 text-red-500">
+                  <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-medium">{nameError}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -299,7 +440,7 @@ export default function FormView() {
                       onBlur={(e) => {
                         e.target.style.borderBottomColor = '#e5e7eb'
                       }}
-                      placeholder="Jawaban Anda"
+                      placeholder={t.yourAnswer}
                     />
                   )}
 
@@ -315,7 +456,7 @@ export default function FormView() {
                       onBlur={(e) => {
                         e.target.style.borderBottomColor = '#e5e7eb'
                       }}
-                      placeholder="Jawaban Anda"
+                      placeholder={t.yourAnswer}
                     />
                   )}
 
@@ -482,13 +623,15 @@ export default function FormView() {
               }}
             >
               <Send className="w-4 h-4" />
-              <span>{submitMutation.isPending ? 'Mengirim...' : 'Kirim'}</span>
+              <span>{submitMutation.isPending ? t.sending : t.send}</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 setAnswers({})
                 setErrors({})
+                setResponderName('')
+                setNameError('')
                 const formEl = document.querySelector('form')
                 formEl?.reset()
               }}
@@ -501,7 +644,7 @@ export default function FormView() {
                 e.currentTarget.style.backgroundColor = 'transparent'
               }}
             >
-              Hapus Formulir
+              {t.clearForm}
             </button>
           </div>
         </form>
@@ -509,7 +652,7 @@ export default function FormView() {
         {/* Footer Branding */}
         <div className="text-center pb-4">
           <p className="text-xs text-gray-400">
-            Dibuat dengan <span style={{ color: theme }}>Form Builder</span>
+            {t.madeWith} <span style={{ color: theme }}>Form Builder</span>
           </p>
         </div>
       </div>

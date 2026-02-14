@@ -31,9 +31,13 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          window.location.href = '/login'
+          // Jangan redirect ke login jika sedang di halaman form publik
+          const isPublicFormPage = window.location.pathname.match(/^\/form\/[^/]+$/)
+          if (!isPublicFormPage) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            window.location.href = '/login'
+          }
         }
         return Promise.reject(error)
       }
@@ -72,7 +76,7 @@ class ApiService {
     return response.data
   }
 
-  async updateForm(id: string, data: Partial<{ title: string; description: string; isPublished: boolean; headerImage: string; logoUrl: string; themeColor: string }>) {
+  async updateForm(id: string, data: Partial<{ title: string; description: string; isPublished: boolean; headerImage: string | null; logoUrl: string | null; themeColor: string }>) {
     const response = await this.api.put(`/forms/${id}`, data)
     return response.data
   }
@@ -124,6 +128,7 @@ class ApiService {
   // ===== RESPONSES =====
   async submitResponse(data: {
     formId: string
+    responderName?: string
     answers: Array<{ questionId: string; value: string | string[] }>
   }) {
     const response = await this.api.post('/responses', data)

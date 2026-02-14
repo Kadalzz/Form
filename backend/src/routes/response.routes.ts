@@ -13,13 +13,14 @@ const answerSchema = z.object({
 
 const responseSchema = z.object({
   formId: z.string().uuid(),
+  responderName: z.string().optional(),
   answers: z.array(answerSchema)
 });
 
 // Submit response (Public untuk published forms)
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { formId, answers } = responseSchema.parse(req.body);
+    const { formId, answers, responderName } = responseSchema.parse(req.body);
 
     // Check if form exists and is published
     const form = await prisma.form.findUnique({
@@ -67,6 +68,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       data: {
         formId,
         responderId,
+        responderName: responderName || null,
         answers: {
           create: answers.map(answer => ({
             questionId: answer.questionId,
