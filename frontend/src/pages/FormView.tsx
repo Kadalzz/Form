@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { CheckCircle, Send, Languages } from 'lucide-react'
 import { apiService } from '@/services/api'
+import { translate } from '@/utils/translate'
 
 const translations = {
   en: {
@@ -318,11 +319,11 @@ export default function FormView() {
                   className="text-2xl md:text-[26px] font-bold leading-tight"
                   style={{ color: darkenColor(theme, 0.15) }}
                 >
-                  {form.title}
+                  {translate(form.title, language)}
                 </h1>
                 {form.description && (
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
-                    {form.description}
+                    {translate(form.description, language)}
                   </p>
                 )}
               </div>
@@ -391,10 +392,10 @@ export default function FormView() {
                     style={{ backgroundColor: theme }}
                   >
                     <h2 className="text-lg font-bold text-white leading-snug">
-                      {question.title}
+                      {translate(question.title, language)}
                     </h2>
                     {question.description && (
-                      <p className="text-sm text-white/80 mt-1">{question.description}</p>
+                      <p className="text-sm text-white/80 mt-1">{translate(question.description, language)}</p>
                     )}
                   </div>
                 </div>
@@ -424,13 +425,13 @@ export default function FormView() {
                   {/* Question Title */}
                   <div className="mb-4">
                     <h3 className="text-base text-gray-800 font-medium leading-relaxed">
-                      {question.title}
+                      {translate(question.title, language)}
                       {question.isRequired && (
                         <span className="text-red-500 ml-1 font-normal">*</span>
                       )}
                     </h3>
                     {question.description && (
-                      <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                      <p className="text-sm text-gray-500 mt-1">{translate(question.description, language)}</p>
                     )}
                   </div>
 
@@ -497,7 +498,7 @@ export default function FormView() {
                               onChange={() => handleAnswerChange(question.id, option)}
                               className="sr-only"
                             />
-                            <span className="text-sm text-gray-700">{option}</span>
+                            <span className="text-sm text-gray-700">{translate(option, language)}</span>
                           </label>
                         )
                       })}
@@ -538,7 +539,7 @@ export default function FormView() {
                               onChange={(e) => handleCheckboxChange(question.id, option, e.target.checked)}
                               className="sr-only"
                             />
-                            <span className="text-sm text-gray-700">{option}</span>
+                            <span className="text-sm text-gray-700">{translate(option, language)}</span>
                           </label>
                         )
                       })}
@@ -561,7 +562,7 @@ export default function FormView() {
                         {/* Scale numbers header */}
                         <div className="flex items-center justify-center">
                           {minLabel && (
-                            <span className="text-xs text-gray-500 font-medium mr-3 w-28 text-right flex-shrink-0">{minLabel}</span>
+                            <span className="text-xs text-gray-500 font-medium mr-3 w-28 text-right flex-shrink-0">{translate(minLabel, language)}</span>
                           )}
                           <div className="flex items-center space-x-0">
                             {scaleValues.map((val) => (
@@ -590,7 +591,7 @@ export default function FormView() {
                             ))}
                           </div>
                           {maxLabel && (
-                            <span className="text-xs text-gray-500 font-medium ml-3 w-28 flex-shrink-0">{maxLabel}</span>
+                            <span className="text-xs text-gray-500 font-medium ml-3 w-28 flex-shrink-0">{translate(maxLabel, language)}</span>
                           )}
                         </div>
                       </div>
