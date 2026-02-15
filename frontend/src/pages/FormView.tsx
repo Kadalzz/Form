@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { CheckCircle, Send } from 'lucide-react'
+import { CheckCircle, Send, Languages } from 'lucide-react'
 import { apiService } from '@/services/api'
 
 const translations = {
@@ -25,6 +25,27 @@ const translations = {
     respondentName: 'Respondent Name',
     respondentNamePlaceholder: 'Enter your name',
     respondentNameRequired: 'Please enter your name',
+  },
+  id: {
+    loading: 'Memuat formulir...',
+    notFound: 'Formulir tidak ditemukan',
+    notFoundDesc: 'Formulir ini mungkin telah dihapus atau tidak tersedia.',
+    notAvailable: 'Formulir tidak tersedia',
+    notAvailableDesc: 'Formulir ini saat ini tidak menerima tanggapan.',
+    submitted: 'Tanggapan Terkirim!',
+    submittedDesc: 'Terima kasih telah mengisi formulir ini.',
+    submitAnother: 'Kirim tanggapan lain',
+    done: 'Selesai',
+    requiredNote: 'Menandakan pertanyaan wajib',
+    yourAnswer: 'Jawaban Anda',
+    required: 'Pertanyaan ini wajib diisi',
+    sending: 'Mengirim...',
+    send: 'Kirim',
+    clearForm: 'Hapus Formulir',
+    madeWith: 'Dibuat dengan',
+    respondentName: 'Nama Responden',
+    respondentNamePlaceholder: 'Masukkan nama Anda',
+    respondentNameRequired: 'Silakan masukkan nama Anda',
   },
 }
 
@@ -69,7 +90,8 @@ export default function FormView() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [responderName, setResponderName] = useState('')
   const [nameError, setNameError] = useState('')
-  const t = translations.en
+  const [language, setLanguage] = useState<'en' | 'id'>('en')
+  const t = translations[language]
 
   const { data: formData, isLoading } = useQuery({
     queryKey: ['form', id],
@@ -260,6 +282,27 @@ export default function FormView() {
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="h-3" style={{ backgroundColor: theme }}></div>
           <div className="px-6 pt-5 pb-5">
+            {/* Language Toggle Button */}
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'id' : 'en')}
+                className="flex items-center space-x-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:shadow-md border-2"
+                style={{ 
+                  borderColor: lightenColor(theme, 0.6),
+                  color: theme,
+                  backgroundColor: lightenColor(theme, 0.95)
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = lightenColor(theme, 0.85)
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = lightenColor(theme, 0.95)
+                }}
+              >
+                <Languages className="w-4 h-4" />
+                <span>{language === 'en' ? 'ID' : 'EN'}</span>
+              </button>
+            </div>
             {/* Logo and Title */}
             <div className="flex items-start space-x-4">
               {logo && (
