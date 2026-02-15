@@ -277,12 +277,12 @@ export default function FormView() {
         </div>
       )}
 
-      <div className={`max-w-2xl mx-auto px-4 space-y-3 ${headerImg ? '-mt-6' : 'pt-6'} pb-8`}>
+      <div className={`max-w-2xl mx-auto px-3 sm:px-4 space-y-3 ${headerImg ? '-mt-6' : 'pt-6'} pb-8`}>
 
         {/* Form Title Card */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="h-3" style={{ backgroundColor: theme }}></div>
-          <div className="px-6 pt-5 pb-5">
+          <div className="px-4 sm:px-6 pt-5 pb-5">
             {/* Language Toggle Button */}
             <div className="flex justify-end mb-3">
               <button
@@ -305,24 +305,24 @@ export default function FormView() {
               </button>
             </div>
             {/* Logo and Title */}
-            <div className="flex items-start space-x-4">
+            <div className="flex items-start space-x-3 sm:space-x-4">
               {logo && (
                 <img
                   src={logo}
                   alt="Form logo"
-                  className="w-14 h-14 rounded-full object-cover flex-shrink-0 border-2 shadow-sm"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0 border-2 shadow-sm"
                   style={{ borderColor: lightenColor(theme, 0.6) }}
                 />
               )}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 overflow-hidden">
                 <h1
-                  className="text-2xl md:text-[26px] font-bold leading-tight"
+                  className="text-xl sm:text-2xl md:text-[26px] font-bold leading-tight break-words"
                   style={{ color: darkenColor(theme, 0.15) }}
                 >
                   {translate(form.title, language)}
                 </h1>
                 {form.description && (
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line break-words">
                     {translate(form.description, language)}
                   </p>
                 )}
@@ -347,8 +347,8 @@ export default function FormView() {
               className="w-1 flex-shrink-0 rounded-l-xl"
               style={{ backgroundColor: nameError ? '#ef4444' : 'transparent' }}
             ></div>
-            <div className="flex-1 px-6 py-5">
-              <h3 className="text-base text-gray-800 font-medium leading-relaxed mb-4">
+            <div className="flex-1 px-4 sm:px-6 py-5">
+              <h3 className="text-sm sm:text-base text-gray-800 font-medium leading-relaxed mb-4 break-words">
                 {t.respondentName}
                 <span className="text-red-500 ml-1 font-normal">*</span>
               </h3>
@@ -388,14 +388,14 @@ export default function FormView() {
                   className="rounded-xl overflow-hidden shadow-sm"
                 >
                   <div
-                    className="px-6 py-4"
+                    className="px-4 sm:px-6 py-4"
                     style={{ backgroundColor: theme }}
                   >
-                    <h2 className="text-lg font-bold text-white leading-snug">
+                    <h2 className="text-base sm:text-lg font-bold text-white leading-snug break-words">
                       {translate(question.title, language)}
                     </h2>
                     {question.description && (
-                      <p className="text-sm text-white/80 mt-1">{translate(question.description, language)}</p>
+                      <p className="text-sm text-white/80 mt-1 break-words">{translate(question.description, language)}</p>
                     )}
                   </div>
                 </div>
@@ -421,17 +421,17 @@ export default function FormView() {
                   }}
                 ></div>
 
-                <div className="flex-1 px-6 py-5">
+                <div className="flex-1 px-4 sm:px-6 py-5">
                   {/* Question Title */}
                   <div className="mb-4">
-                    <h3 className="text-base text-gray-800 font-medium leading-relaxed">
+                    <h3 className="text-sm sm:text-base text-gray-800 font-medium leading-relaxed break-words">
                       {translate(question.title, language)}
                       {question.isRequired && (
                         <span className="text-red-500 ml-1 font-normal">*</span>
                       )}
                     </h3>
                     {question.description && (
-                      <p className="text-sm text-gray-500 mt-1">{translate(question.description, language)}</p>
+                      <p className="text-sm text-gray-500 mt-1 break-words">{translate(question.description, language)}</p>
                     )}
                   </div>
 
@@ -475,7 +475,7 @@ export default function FormView() {
                         return (
                           <label
                             key={optIndex}
-                            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all ${
+                            className={`flex items-start space-x-3 cursor-pointer px-2 sm:px-3 py-2.5 rounded-lg transition-all ${
                               isSelected
                                 ? 'bg-opacity-10'
                                 : 'hover:bg-gray-50'
@@ -498,7 +498,7 @@ export default function FormView() {
                               onChange={() => handleAnswerChange(question.id, option)}
                               className="sr-only"
                             />
-                            <span className="text-sm text-gray-700">{translate(option, language)}</span>
+                            <span className="text-xs sm:text-sm text-gray-700 break-words flex-1 min-w-0">{translate(option, language)}</span>
                           </label>
                         )
                       })}
@@ -513,7 +513,7 @@ export default function FormView() {
                         return (
                           <label
                             key={optIndex}
-                            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all ${
+                            className={`flex items-start space-x-3 cursor-pointer px-2 sm:px-3 py-2.5 rounded-lg transition-all ${
                               isChecked
                                 ? ''
                                 : 'hover:bg-gray-50'
@@ -539,7 +539,7 @@ export default function FormView() {
                               onChange={(e) => handleCheckboxChange(question.id, option, e.target.checked)}
                               className="sr-only"
                             />
-                            <span className="text-sm text-gray-700">{translate(option, language)}</span>
+                            <span className="text-xs sm:text-sm text-gray-700 break-words flex-1 min-w-0">{translate(option, language)}</span>
                           </label>
                         )
                       })}
@@ -559,14 +559,27 @@ export default function FormView() {
 
                     return (
                       <div className="mt-2">
-                        {/* Scale numbers header */}
-                        <div className="flex items-center justify-center">
+                        {/* Scale Labels - Mobile First */}
+                        <div className="flex flex-col md:hidden space-y-1 mb-3">
                           {minLabel && (
-                            <span className="text-xs text-gray-500 font-medium mr-3 w-28 text-right flex-shrink-0">{translate(minLabel, language)}</span>
+                            <div className="text-xs text-gray-500 font-medium break-words">
+                              <span className="font-semibold">{minVal}:</span> {translate(minLabel, language)}
+                            </div>
                           )}
-                          <div className="flex items-center space-x-0">
+                          {maxLabel && (
+                            <div className="text-xs text-gray-500 font-medium break-words">
+                              <span className="font-semibold">{maxVal}:</span> {translate(maxLabel, language)}
+                            </div>
+                          )}
+                        </div>
+                        {/* Scale numbers header */}
+                        <div className="flex items-center justify-center -mx-2 px-2">
+                          {minLabel && (
+                            <span className="hidden md:block text-xs text-gray-500 font-medium mr-3 w-28 text-right flex-shrink-0 break-words">{translate(minLabel, language)}</span>
+                          )}
+                          <div className="flex items-center space-x-0 overflow-x-auto max-w-full pb-1">
                             {scaleValues.map((val) => (
-                              <div key={val} className="flex flex-col items-center" style={{ minWidth: '40px' }}>
+                              <div key={val} className="flex flex-col items-center flex-shrink-0" style={{ minWidth: '36px' }}>
                                 <span className="text-xs text-gray-500 font-medium mb-2">{val}</span>
                                 <label className="cursor-pointer">
                                   <input
@@ -591,7 +604,7 @@ export default function FormView() {
                             ))}
                           </div>
                           {maxLabel && (
-                            <span className="text-xs text-gray-500 font-medium ml-3 w-28 flex-shrink-0">{translate(maxLabel, language)}</span>
+                            <span className="hidden md:block text-xs text-gray-500 font-medium ml-3 w-28 flex-shrink-0 break-words">{translate(maxLabel, language)}</span>
                           )}
                         </div>
                       </div>
