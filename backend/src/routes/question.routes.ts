@@ -10,10 +10,10 @@ const questionSchema = z.object({
   formId: z.string().uuid(),
   title: z.string().min(1, 'Question title is required'),
   description: z.string().optional(),
-  type: z.enum(['SHORT_TEXT', 'LONG_TEXT', 'MULTIPLE_CHOICE', 'CHECKBOX']),
+  type: z.enum(['SHORT_TEXT', 'LONG_TEXT', 'MULTIPLE_CHOICE', 'CHECKBOX', 'LINEAR_SCALE', 'SECTION_HEADER']),
   isRequired: z.boolean().optional(),
   order: z.number().int().min(0),
-  options: z.array(z.string()).optional() // untuk multiple choice dan checkbox
+  options: z.array(z.string()).optional() // untuk multiple choice, checkbox, dan linear scale
 });
 
 // Create question (Admin only)
