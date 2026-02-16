@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Form Builder API for Vercel Serverless",
   "main": "index.ts",
+  "scripts": {
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy"
+  },
   "dependencies": {
     "@prisma/client": "^5.9.0",
     "bcryptjs": "^2.4.3",
