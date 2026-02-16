@@ -4,7 +4,7 @@
   "description": "Form Builder API for Vercel Serverless",
   "main": "index.ts",
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && sh migrate.sh",
     "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
