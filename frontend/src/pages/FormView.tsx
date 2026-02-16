@@ -104,6 +104,11 @@ export default function FormView() {
     onSuccess: () => {
       setSubmitted(true)
     },
+    onError: (error: any) => {
+      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to submit response'
+      alert(`Error: ${errorMsg}`)
+      console.error('Submission error:', error)
+    },
   })
 
   const handleAnswerChange = (questionId: string, value: string | string[]) => {
