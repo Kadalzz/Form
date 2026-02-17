@@ -384,8 +384,7 @@ export default function FormView() {
         {/* Questions */}
         <form onSubmit={handleSubmit} className="space-y-3">
           {form.questions.map((question: any) => {
-
-            {/* SECTION_HEADER - rendered as a colored banner */}
+            // SECTION_HEADER - rendered as a colored banner
             if (question.type === 'SECTION_HEADER') {
               return (
                 <div
