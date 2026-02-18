@@ -63,6 +63,7 @@ export default function FormBuilder() {
 
   const [formTitle, setFormTitle] = useState('')
   const [formDescription, setFormDescription] = useState('')
+  const [closingMessage, setClosingMessage] = useState('')
   const [headerImage, setHeaderImage] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [themeColor, setThemeColor] = useState('#673AB7')
@@ -80,6 +81,7 @@ export default function FormBuilder() {
     if (formData?.data) {
       setFormTitle(formData.data.title)
       setFormDescription(formData.data.description || '')
+      setClosingMessage(formData.data.closingMessage || '')
       setHeaderImage(formData.data.headerImage || '')
       setLogoUrl(formData.data.logoUrl || '')
       setThemeColor(formData.data.themeColor || '#673AB7')
@@ -194,6 +196,7 @@ export default function FormBuilder() {
       const formPayload = {
         title: formTitle,
         description: formDescription || undefined,
+        closingMessage: closingMessage || undefined,
         headerImage: headerImage || null,
         logoUrl: logoUrl || null,
         themeColor: themeColor || '#673AB7',
@@ -436,6 +439,20 @@ export default function FormBuilder() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               rows={3}
               placeholder="Enter form description (optional)"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Closing Message
+              <span className="text-xs text-gray-500 ml-2">(Ditampilkan di bawah pertanyaan terakhir)</span>
+            </label>
+            <textarea
+              value={closingMessage}
+              onChange={(e) => setClosingMessage(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              rows={3}
+              placeholder="Contoh: Terima kasih telah menyelesaikan kuesioner ini; saya sangat menghargai partisipasi Anda. Cc: florasamosir/supervisors/10February2026"
             />
           </div>
         </div>
