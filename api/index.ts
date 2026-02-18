@@ -61,6 +61,7 @@ const questionSchema = z.object({
   description: z.string().optional(),
   type: z.enum(['SHORT_TEXT', 'LONG_TEXT', 'MULTIPLE_CHOICE', 'CHECKBOX', 'LINEAR_SCALE', 'SECTION_HEADER']),
   isRequired: z.boolean().optional(),
+  allowCustomAnswer: z.boolean().optional(),
   order: z.number().int().min(0),
   options: z.array(z.string()).optional()
 });

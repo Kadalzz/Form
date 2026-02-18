@@ -508,6 +508,38 @@ export default function FormView() {
                           </label>
                         )
                       })}
+                      
+                      {/* Custom Answer Option */}
+                      {question.allowCustomAnswer && (
+                        <div className="border-t pt-2 mt-2">
+                          <label className="flex items-start space-x-3 cursor-pointer px-2 sm:px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-all">
+                            <div
+                              className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all mt-0.5"
+                              style={{
+                                borderColor: (answers[question.id] && !question.options?.includes(answers[question.id] as string)) ? theme : '#d1d5db',
+                              }}
+                            >
+                              {(answers[question.id] && !question.options?.includes(answers[question.id] as string)) && (
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme }}></div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-xs sm:text-sm text-gray-600 mb-1.5">Lainnya:</div>
+                              <input
+                                type="text"
+                                value={(answers[question.id] && !question.options?.includes(answers[question.id] as string)) ? answers[question.id] as string : ''}
+                                onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                onFocus={(e) => {
+                                  if (!e.target.value) handleAnswerChange(question.id, '')
+                                }}
+                                placeholder="Ketik jawaban Anda..."
+                                className="w-full px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': theme } as any}
+                              />
+                            </div>
+                          </label>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -549,6 +581,52 @@ export default function FormView() {
                           </label>
                         )
                       })}
+                      
+                      {/* Custom Answer Option */}
+                      {question.allowCustomAnswer && (() => {
+                        const currentAnswers = (answers[question.id] as string[]) || []
+                        const customAnswer = currentAnswers.find(ans => !question.options?.includes(ans)) || ''
+                        const hasCustom = customAnswer !== ''
+                        
+                        return (
+                          <div className="border-t pt-2 mt-2">
+                            <label className="flex items-start space-x-3 cursor-pointer px-2 sm:px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-all">
+                              <div
+                                className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border-2 transition-all mt-0.5"
+                                style={{
+                                  borderColor: hasCustom ? theme : '#d1d5db',
+                                  backgroundColor: hasCustom ? theme : 'transparent',
+                                }}
+                              >
+                                {hasCustom && (
+                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-xs sm:text-sm text-gray-600 mb-1.5">Lainnya:</div>
+                                <input
+                                  type="text"
+                                  value={customAnswer}
+                                  onChange={(e) => {
+                                    const value = e.target.value
+                                    const standardAnswers = currentAnswers.filter(ans => question.options?.includes(ans))
+                                    if (value.trim()) {
+                                      handleAnswerChange(question.id, [...standardAnswers, value])
+                                    } else {
+                                      handleAnswerChange(question.id, standardAnswers)
+                                    }
+                                  }}
+                                  placeholder="Ketik jawaban Anda..."
+                                  className="w-full px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded focus:ring-2 focus:border-transparent"
+                                  style={{ '--tw-ring-color': theme } as any}
+                                />
+                              </div>
+                            </label>
+                          </div>
+                        )
+                      })()}
                     </div>
                   )}
 

@@ -29,6 +29,7 @@ interface Question {
   description?: string
   type: QuestionType
   isRequired: boolean
+  allowCustomAnswer?: boolean
   order: number
   options?: string[]
 }
@@ -221,6 +222,7 @@ export default function FormBuilder() {
             description: question.description || undefined,
             type: question.type,
             isRequired: question.isRequired,
+            allowCustomAnswer: question.allowCustomAnswer || false,
             order: question.order,
             options: cleanOptions.length > 0 ? cleanOptions : undefined,
           }
@@ -507,6 +509,18 @@ export default function FormBuilder() {
                     className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                   />
                   <span className="text-sm text-gray-700">Required</span>
+                </label>
+                )}
+
+                {(question.type === 'MULTIPLE_CHOICE' || question.type === 'CHECKBOX') && (
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={question.allowCustomAnswer || false}
+                    onChange={(e) => handleUpdateQuestion(index, 'allowCustomAnswer', e.target.checked)}
+                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700">Allow custom answer</span>
                 </label>
                 )}
               </div>

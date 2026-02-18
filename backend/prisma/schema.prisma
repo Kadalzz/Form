@@ -76,16 +76,17 @@ enum QuestionType {
 }
 
 model Question {
-  id          String       @id @default(uuid())
-  formId      String
-  title       String
-  description String?
-  type        QuestionType
-  isRequired  Boolean      @default(false)
-  order       Int          // untuk sorting order pertanyaan
-  options     Json?        // untuk menyimpan pilihan (array) jika type = MULTIPLE_CHOICE atau CHECKBOX
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String       @id @default(uuid())
+  formId            String
+  title             String
+  description       String?
+  type              QuestionType
+  isRequired        Boolean      @default(false)
+  allowCustomAnswer Boolean      @default(false) // Allow respondent to type custom answer
+  order             Int          // untuk sorting order pertanyaan
+  options           Json?        // untuk menyimpan pilihan (array) jika type = MULTIPLE_CHOICE atau CHECKBOX
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   // Relations
   form    Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
