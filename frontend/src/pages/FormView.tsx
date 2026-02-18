@@ -97,6 +97,8 @@ export default function FormView() {
   const { data: formData, isLoading } = useQuery({
     queryKey: ['form', id],
     queryFn: () => apiService.getForm(id!),
+    refetchOnMount: 'always', // Always fetch fresh form data
+    staleTime: 0, // Consider data stale immediately to get latest questions
   })
 
   const submitMutation = useMutation({

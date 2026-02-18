@@ -12,11 +12,15 @@ export default function FormResponses() {
   const { data: formData } = useQuery({
     queryKey: ['form', id],
     queryFn: () => apiService.getForm(id!),
+    refetchOnMount: 'always', // Always fetch fresh data when page opens
+    staleTime: 0, // Consider data stale immediately
   })
 
   const { data: responsesData, isLoading } = useQuery({
     queryKey: ['responses', id],
     queryFn: () => apiService.getResponses(id!),
+    refetchOnMount: 'always', // Always fetch fresh data when page opens
+    staleTime: 0, // Consider data stale immediately
   })
 
   const deleteResponseMutation = useMutation({

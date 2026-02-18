@@ -130,6 +130,31 @@ export default function FormBuilder() {
     setQuestions([...questions, newQuestion])
   }
 
+  const handleInsertQuestion = (afterIndex: number) => {
+    const newQuestion: Question = {
+      title: '',
+      type: 'SHORT_TEXT',
+      isRequired: false,
+      order: afterIndex + 1,
+      options: [''],
+    }
+    
+    // Insert the new question after the specified index
+    const updatedQuestions = [
+      ...questions.slice(0, afterIndex + 1),
+      newQuestion,
+      ...questions.slice(afterIndex + 1)
+    ]
+    
+    // Update all question orders
+    const reorderedQuestions = updatedQuestions.map((q, idx) => ({
+      ...q,
+      order: idx
+    }))
+    
+    setQuestions(reorderedQuestions)
+  }
+
   const handleUpdateQuestion = (index: number, field: string, value: any) => {
     const updated = [...questions]
     updated[index] = { ...updated[index], [field]: value }
@@ -152,8 +177,14 @@ export default function FormBuilder() {
     const question = questions[index]
     if (question.id) {
       await deleteQuestionMutation.mutateAsync(question.id)
+      // Invalidate form cache to update all pages
+      queryClient.invalidateQueries({ queryKey: ['form', id] })
     }
-    setQuestions(questions.filter((_, i) => i !== index))
+    // Update order for remaining questions
+    const remainingQuestions = questions
+      .filter((_, i) => i !== index)
+      .map((q, idx) => ({ ...q, order: idx }))
+    setQuestions(remainingQuestions)
   }
 
   const handleSave = async () => {
@@ -199,8 +230,12 @@ export default function FormBuilder() {
         }
       }
 
-      alert('Form saved successfully!')
+      // Invalidate all queries related to this form
       queryClient.invalidateQueries({ queryKey: ['form', formId] })
+      queryClient.invalidateQueries({ queryKey: ['responses', formId] })
+      
+      alert('Form saved successfully!')
+      
       if (!isEditMode) {
         navigate(`/form/${formId}/edit`)
       }
@@ -612,6 +647,17 @@ export default function FormBuilder() {
                   />
                 </div>
               )}
+            </div>
+
+            {/* Insert Question Button */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => handleInsertQuestion(index)}
+                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah pertanyaan di bawah ini</span>
+              </button>
             </div>
           </div>
         ))}
