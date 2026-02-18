@@ -138,13 +138,27 @@ export default function FormView() {
     const requiredQuestions = form.questions.filter((q: any) => q.isRequired)
     const newErrors: Record<string, string> = {}
 
+    // Debug logging
+    console.log('=== SUBMIT DEBUG ===')
+    console.log('Total required questions:', requiredQuestions.length)
+    console.log('Current answers:', answers)
+
     // Check required questions
     for (const question of requiredQuestions) {
       const answer = answers[question.id]
-      if (!answer || (Array.isArray(answer) && answer.length === 0) || answer === '') {
+      const isEmpty = !answer || (Array.isArray(answer) && answer.length === 0) || answer === ''
+      
+      console.log(`Question ${question.order}: "${question.text?.substring(0, 50)}..." - Type: ${question.type}`)
+      console.log(`  Answer:`, answer)
+      console.log(`  Is empty:`, isEmpty)
+      
+      if (isEmpty) {
         newErrors[question.id] = t.required
       }
     }
+
+    console.log('Errors found:', Object.keys(newErrors).length)
+    console.log('Error details:', newErrors)
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -152,8 +166,13 @@ export default function FormView() {
       const errorElement = document.getElementById(`question-${firstErrorId}`)
       errorElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       
-      // Show alert for better UX
-      alert(`❌ ${t.required}\n\nMasih ada pertanyaan wajib yang belum dijawab. Silakan scroll ke atas untuk melihat pertanyaan yang ditandai merah.`)
+      // Show detailed error info
+      const errorQuestions = requiredQuestions
+        .filter((q: any) => newErrors[q.id])
+        .map((q: any) => `#${q.order}: ${q.text?.substring(0, 60)}...`)
+        .join('\n')
+      
+      alert(`❌ ${t.required}\n\nPertanyaan yang belum dijawab:\n${errorQuestions}\n\nSilakan scroll ke atas untuk melihat pertanyaan yang ditandai merah.`)
       return
     }
 
