@@ -324,8 +324,8 @@ app.post('/api/responses', async (req: AuthRequest, res: Response) => {
     if (!form) return res.status(404).json({ error: true, message: 'Form not found' });
     if (!form.isPublished) return res.status(403).json({ error: true, message: 'This form is not accepting responses' });
 
-    // Validate required questions
-    const requiredQuestions = form.questions.filter(q => q.isRequired);
+    // Validate required questions (exclude SECTION_HEADER)
+    const requiredQuestions = form.questions.filter(q => q.isRequired && q.type !== 'SECTION_HEADER');
     const answeredIds = answers.map(a => a.questionId);
     for (const rq of requiredQuestions) {
       if (!answeredIds.includes(rq.id)) {
