@@ -138,6 +138,7 @@ export default function FormView() {
     const requiredQuestions = form.questions.filter((q: any) => q.isRequired)
     const newErrors: Record<string, string> = {}
 
+    // Check required questions
     for (const question of requiredQuestions) {
       const answer = answers[question.id]
       if (!answer || (Array.isArray(answer) && answer.length === 0) || answer === '') {
@@ -148,30 +149,41 @@ export default function FormView() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       const firstErrorId = Object.keys(newErrors)[0]
-      document.getElementById(`question-${firstErrorId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const errorElement = document.getElementById(`question-${firstErrorId}`)
+      errorElement?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      
+      // Show alert for better UX
+      alert(`❌ ${t.required}\n\nMasih ada pertanyaan wajib yang belum dijawab. Silakan scroll ke atas untuk melihat pertanyaan yang ditandai merah.`)
       return
     }
 
     // Validate respondent name
     if (!responderName.trim()) {
       setNameError(t.respondentNameRequired)
-      document.getElementById('responder-name-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const nameField = document.getElementById('responder-name-field')
+      nameField?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      alert(`❌ Nama harus diisi!\n\n${t.respondentNameRequired}`)
       return
     }
     setNameError('')
 
-    const submissionData = {
-      formId: id!,
-      responderName: responderName.trim(),
-      answers: form.questions
-        .filter((q: any) => q.type !== 'SECTION_HEADER')
-        .map((q: any) => ({
-          questionId: q.id,
-          value: answers[q.id] || (q.type === 'CHECKBOX' ? [] : ''),
-        })).filter((a: any) => a.value !== '' && (Array.isArray(a.value) ? a.value.length > 0 : true)),
-    }
+    try {
+      const submissionData = {
+        formId: id!,
+        responderName: responderName.trim(),
+        answers: form.questions
+          .filter((q: any) => q.type !== 'SECTION_HEADER')
+          .map((q: any) => ({
+            questionId: q.id,
+            value: answers[q.id] || (q.type === 'CHECKBOX' ? [] : ''),
+          })).filter((a: any) => a.value !== '' && (Array.isArray(a.value) ? a.value.length > 0 : true)),
+      }
 
-    await submitMutation.mutateAsync(submissionData)
+      await submitMutation.mutateAsync(submissionData)
+    } catch (error: any) {
+      console.error('Submission error:', error)
+      alert(`❌ Gagal mengirim formulir!\n\n${error?.response?.data?.message || error?.message || 'Terjadi kesalahan. Silakan coba lagi.'}`)
+    }
   }
 
   // --- Loading State ---
