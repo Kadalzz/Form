@@ -145,11 +145,23 @@ export default function FormResponses() {
                 {form?.questions.filter((q: any) => q.type !== 'SECTION_HEADER').map((question: any) => {
                   const answer = response.answers.find((a: any) => a.questionId === question.id)
                   const value = answer?.value
-                  const displayValue = Array.isArray(value) ? value.join(', ') : value || '-'
+                  
+                  // Display value with proper formatting
+                  let displayValue = '-'
+                  if (value !== null && value !== undefined) {
+                    if (Array.isArray(value)) {
+                      // For CHECKBOX - join all values including custom answers
+                      displayValue = value.length > 0 ? value.join(', ') : '-'
+                    } else {
+                      // For MULTIPLE_CHOICE and text - display as is, including custom answers
+                      displayValue = value.toString().trim() || '-'
+                    }
+                  }
+                  
                   return (
                     <div key={question.id} className="border-b border-gray-100 pb-3 last:border-0">
                       <p className="text-xs font-medium text-gray-500 mb-1">{question.title}</p>
-                      <p className="text-sm text-gray-900">{displayValue}</p>
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap break-words">{displayValue}</p>
                     </div>
                   )
                 })}
