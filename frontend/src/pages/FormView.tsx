@@ -135,7 +135,10 @@ export default function FormView() {
     e.preventDefault()
 
     const form = formData?.data
-    const requiredQuestions = form.questions.filter((q: any) => q.isRequired)
+    // Filter only actual questions that are required (exclude SECTION_HEADER)
+    const requiredQuestions = form.questions.filter((q: any) => 
+      q.isRequired && q.type !== 'SECTION_HEADER'
+    )
     const newErrors: Record<string, string> = {}
 
     // Debug logging
