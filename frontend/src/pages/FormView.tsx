@@ -633,7 +633,7 @@ export default function FormView() {
           })}
 
           {/* Closing Message */}
-          {form.closingMessage && (
+          {form?.closingMessage && (
             <div className="mt-6 mb-4 p-4 bg-gray-50 rounded-lg border-l-4" style={{ borderLeftColor: theme }}>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{form.closingMessage}</p>
             </div>

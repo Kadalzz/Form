@@ -49,6 +49,7 @@ const loginSchema = z.object({ email: z.string().email(), password: z.string() }
 const formSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
+  closingMessage: z.string().optional(),
   isPublished: z.boolean().optional(),
   headerImage: z.string().optional().nullable(),
   logoUrl: z.string().optional().nullable(),
